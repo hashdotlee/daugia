@@ -1,0 +1,50 @@
+.profileContainer {
+  margin: 20px 0;
+}
+
+.title {
+  font-size: 14pt;
+  margin-bottom: 10px;
+}
+
+.statusSection {
+  margin-bottom: 15px;
+}
+
+.statusBadge {
+  font-weight: bold;
+}
+
+.scoreBadge {
+  margin-left: 10px;
+}
+
+.alert {
+  color: green;
+  margin-bottom: 10px;
+}
+
+.form {
+  display: table;
+}
+
+.inputGroup {
+  display: table-row;
+}
+
+.inputGroup label {
+  display: table-cell;
+  padding-right: 10px;
+  padding-bottom: 5px;
+}
+
+.inputGroup input {
+  display: table-cell;
+  margin-bottom: 5px;
+}
+
+.helperText {
+  display: block;
+  font-size: 8pt;
+  color: var(--text-muted);
+}

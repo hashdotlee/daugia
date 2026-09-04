@@ -1,0 +1,69 @@
+.container {
+  display: flex;
+  border: 1px solid #ccc;
+  min-height: 400px;
+}
+
+.sidebar {
+  width: 200px;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  background: #fff;
+}
+
+.sidebar h3 {
+  font-size: 10pt;
+  margin-bottom: 10px;
+}
+
+.contactList {
+  list-style: none;
+  padding: 0;
+}
+
+.contactList li {
+  margin-bottom: 5px;
+}
+
+.activeContact {
+  font-weight: bold;
+}
+
+.chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.emptyState {
+  padding: 20px;
+  color: var(--text-muted);
+}
+
+.messagesList {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 300px;
+  border-bottom: 1px solid #ccc;
+}
+
+.msgLeft {
+  margin-bottom: 5px;
+}
+
+.msgRight {
+  margin-bottom: 5px;
+  color: var(--primary);
+}
+
+.composeForm {
+  display: flex;
+  padding: 10px;
+  gap: 5px;
+}
+
+.composeForm input {
+  flex: 1;
+}

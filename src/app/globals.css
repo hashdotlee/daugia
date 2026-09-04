@@ -1,0 +1,64 @@
+:root {
+  --background: #f6f6ef;
+  --foreground: #000000;
+  --primary: #ff6600;
+  --text-muted: #828282;
+  --link: #000000;
+  --link-hover: #000000;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10pt;
+  margin: 0;
+  padding: 8px;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.page-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #f6f6ef;
+}
+
+.btn-primary, .btn-secondary {
+  background-color: var(--primary);
+  color: #fff;
+  border: 1px solid var(--primary);
+  padding: 4px 8px;
+  font-size: 10pt;
+  cursor: pointer;
+  font-family: Verdana, Geneva, sans-serif;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid #ccc;
+}
+
+.input-field {
+  padding: 4px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10pt;
+  border: 1px solid #ccc;
+}
+
+/* Glassmorphism removed, simple panels */
+.glass-panel {
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}

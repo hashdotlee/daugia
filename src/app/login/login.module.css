@@ -1,0 +1,52 @@
+.authContainer {
+  margin: 20px 0;
+}
+
+.title {
+  font-size: 14pt;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 15px;
+}
+
+.form {
+  display: table;
+}
+
+.inputGroup {
+  display: table-row;
+}
+
+.inputGroup label {
+  display: table-cell;
+  padding-right: 10px;
+  padding-bottom: 5px;
+}
+
+.inputGroup input {
+  display: table-cell;
+  margin-bottom: 5px;
+}
+
+.errorAlert {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.toggleText {
+  margin-top: 15px;
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--link);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+}

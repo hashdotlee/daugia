@@ -1,0 +1,119 @@
+.grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.mainContent {
+  margin-bottom: 20px;
+}
+
+.header {
+  margin-bottom: 5px;
+}
+
+.title {
+  font-size: 14pt;
+  display: inline;
+  margin-right: 10px;
+}
+
+.badges {
+  display: inline;
+  font-size: 9pt;
+}
+
+.badgeActive {
+  color: green;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.badgeEnded {
+  color: red;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.badgeInfo {
+  color: var(--text-muted);
+}
+
+.creator {
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.description {
+  margin-bottom: 15px;
+}
+
+.metaInfo {
+  font-size: 9pt;
+  color: #000;
+  margin-bottom: 20px;
+}
+
+.sidebar {
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
+}
+
+.biddingPanel {
+  margin-bottom: 20px;
+}
+
+.currentPrice {
+  margin-bottom: 10px;
+}
+
+.priceLabel {
+  margin-right: 10px;
+}
+
+.priceValue {
+  font-weight: bold;
+  font-size: 12pt;
+}
+
+.bidForm {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.errorAlert {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.endedMessage {
+  color: red;
+  font-weight: bold;
+}
+
+.historyTitle {
+  font-size: 12pt;
+  margin-bottom: 10px;
+}
+
+.bidList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bidItem {
+  margin-bottom: 5px;
+}
+
+.bidderName {
+  margin-right: 10px;
+}
+
+.bidAmount {
+  font-weight: bold;
+}
+
+.noBids {
+  color: var(--text-muted);
+}

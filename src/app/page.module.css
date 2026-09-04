@@ -1,0 +1,72 @@
+.heroSection {
+  margin-bottom: 20px;
+}
+
+.heroTitle {
+  font-size: 14pt;
+  margin-bottom: 5px;
+}
+
+.heroSubtitle {
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: 12pt;
+  margin-bottom: 10px;
+}
+
+.grid {
+  display: block;
+}
+
+.card {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardTitle {
+  font-size: 10pt;
+  font-weight: normal;
+}
+
+.cardCreator {
+  font-size: 9pt;
+  color: var(--text-muted);
+}
+
+.cardDetails {
+  font-size: 9pt;
+  color: #000;
+}
+
+.detailItem {
+  display: inline;
+  margin-right: 10px;
+}
+
+.detailLabel {
+  display: none;
+}
+
+.detailValue {
+  font-weight: bold;
+}
+
+.requirements {
+  display: inline;
+  font-size: 9pt;
+  color: var(--text-muted);
+}
+
+.badge {
+  margin-right: 5px;
+}

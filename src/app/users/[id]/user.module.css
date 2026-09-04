@@ -1,0 +1,35 @@
+.profileHeader {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.title {
+  font-size: 14pt;
+  margin-bottom: 5px;
+}
+
+.meta {
+  color: var(--text-muted);
+  font-size: 9pt;
+  margin-bottom: 10px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.auctionsList h3 {
+  font-size: 12pt;
+  margin-bottom: 10px;
+}
+
+.auctionsList ul {
+  list-style: none;
+  padding: 0;
+}
+
+.auctionsList li {
+  margin-bottom: 5px;
+}
