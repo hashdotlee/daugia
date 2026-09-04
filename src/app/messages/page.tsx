@@ -123,16 +123,16 @@ function MessagesContent() {
     }
   }
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div>Đang tải...</div>
 
   return (
     <div className={styles.container}>
       <div className={styles.sidebar}>
-        <h3>Conversations</h3>
+        <h3>Cuộc trò chuyện</h3>
         <ul className={styles.contactList}>
           <li>
             <Link href="/messages?support=true" className={isSupport ? styles.activeContact : ''}>
-              [Support Channel]
+              [Kênh Hỗ Trợ]
             </Link>
           </li>
           {contacts.map(c => (
@@ -147,16 +147,16 @@ function MessagesContent() {
 
       <div className={styles.chatArea}>
         {(!activeUserId && !isSupport) ? (
-          <div className={styles.emptyState}>Select a conversation or Support</div>
+          <div className={styles.emptyState}>Chọn một cuộc trò chuyện hoặc Hỗ Trợ</div>
         ) : (
           <>
             <div className={styles.messagesList}>
-              {messages.length === 0 ? <p>No messages yet.</p> : null}
+              {messages.length === 0 ? <p>Chưa có tin nhắn nào.</p> : null}
               {messages.map(m => {
                 const isMe = m.sender_id === currentUser.id
                 return (
                   <div key={m.id} className={isMe ? styles.msgRight : styles.msgLeft}>
-                    <strong>{isMe ? 'You' : m.sender?.display_name || 'System'}: </strong>
+                    <strong>{isMe ? 'Bạn' : m.sender?.display_name || 'Hệ thống'}: </strong>
                     <span>{m.content}</span>
                   </div>
                 )
@@ -169,9 +169,9 @@ function MessagesContent() {
                 className="input-field"
                 value={newMessage}
                 onChange={e => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder="Nhập tin nhắn..."
               />
-              <button type="submit" className="btn-primary" disabled={sending}>Send</button>
+              <button type="submit" className="btn-primary" disabled={sending}>Gửi</button>
             </form>
           </>
         )}
@@ -183,8 +183,8 @@ function MessagesContent() {
 export default function MessagesPage() {
   return (
     <div className="page-container">
-      <h1 style={{ fontSize: '14pt', marginBottom: '10px' }}>Messages</h1>
-      <Suspense fallback={<div>Loading...</div>}>
+      <h1 style={{ fontSize: '14pt', marginBottom: '10px' }}>Tin Nhắn</h1>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <MessagesContent />
       </Suspense>
     </div>

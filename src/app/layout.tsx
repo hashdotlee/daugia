@@ -3,8 +3,8 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 
 export const metadata: Metadata = {
-  title: 'BidMaster - Modern Auction Platform',
-  description: 'A premium, dynamic auction platform for everyone.',
+  title: 'Sàn Đấu Giá Trực Tuyến',
+  description: 'Nền tảng đấu giá trực tuyến an toàn và uy tín.',
 }
 
 export default function RootLayout({

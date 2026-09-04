@@ -21,33 +21,33 @@ export default async function HomePage() {
   return (
     <main className="page-container">
       <div className={styles.heroSection}>
-        <h1 className={styles.heroTitle}>Discover & Bid on Exclusive Items</h1>
-        <p className={styles.heroSubtitle}>Join the most trusted community of verified buyers and sellers.</p>
+        <h1 className={styles.heroTitle}>Khám Phá & Đấu Giá Trực Tuyến</h1>
+        <p className={styles.heroSubtitle}>Tham gia cộng đồng mua bán uy tín và an toàn.</p>
         <Link href="/auctions/create" className="btn-primary">
-          Start Selling
+          Bắt Đầu Bán
         </Link>
       </div>
 
-      <h2 className={styles.sectionTitle}>Live Auctions</h2>
+      <h2 className={styles.sectionTitle}>Các Cuộc Đấu Giá Đang Diễn Ra</h2>
 
       {error ? (
-        <div className={styles.errorState}>Failed to load auctions.</div>
+        <div className={styles.errorState}>Không thể tải dữ liệu đấu giá.</div>
       ) : auctions?.length === 0 ? (
-        <div className={styles.emptyState}>No active auctions right now. Be the first to create one!</div>
+        <div className={styles.emptyState}>Hiện chưa có cuộc đấu giá nào. Hãy là người đầu tiên tạo đấu giá!</div>
       ) : (
         <div className={styles.grid}>
           {auctions?.map((auction) => (
             <Link href={`/auctions/${auction.id}`} key={auction.id} className={`${styles.card} glass-panel`}>
               <div className={styles.cardContent}>
                 <h3 className={styles.cardTitle}>{auction.title}</h3>
-                <p className={styles.cardCreator}>By {(auction.creator as any)?.display_name || 'Unknown'}</p>
+                <p className={styles.cardCreator}>Bởi {(auction.creator as any)?.display_name || 'Ẩn danh'}</p>
                 <div className={styles.cardDetails}>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Starting Price</span>
+                    <span className={styles.detailLabel}>Giá Khởi Điểm</span>
                     <span className={styles.detailValue}>${auction.start_price.toFixed(2)}</span>
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Ends At</span>
+                    <span className={styles.detailLabel}>Kết Thúc Lúc</span>
                     <span className={styles.detailValue}>
                       {new Date(auction.end_time).toLocaleDateString()} {new Date(auction.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -56,10 +56,10 @@ export default async function HomePage() {
                 
                 <div className={styles.requirements}>
                   {!auction.allow_unverified && (
-                    <span className={styles.badge}>Verified Only</span>
+                    <span className={styles.badge}>Chỉ Đã Xác Minh</span>
                   )}
                   {auction.min_reputation > 0 && (
-                    <span className={styles.badge}>Reputation {'>'} {auction.min_reputation}</span>
+                    <span className={styles.badge}>Uy tín {'>'} {auction.min_reputation}</span>
                   )}
                 </div>
               </div>

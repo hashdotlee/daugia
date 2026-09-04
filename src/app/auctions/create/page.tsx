@@ -35,7 +35,7 @@ export default function CreateAuctionPage() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      if (!user) throw new Error('Chưa xác thực')
 
       const startTime = new Date()
       const endTime = new Date(startTime.getTime() + parseInt(durationHours) * 60 * 60 * 1000)
@@ -68,39 +68,39 @@ export default function CreateAuctionPage() {
   return (
     <div className="page-container">
       <div className={`${styles.createContainer} glass-panel`}>
-        <h1 className={styles.title}>Create New Auction</h1>
-        <p className={styles.subtitle}>Set up your item for bidding with custom requirements.</p>
+        <h1 className={styles.title}>Tạo Cuộc Đấu Giá Mới</h1>
+        <p className={styles.subtitle}>Thiết lập vật phẩm đấu giá của bạn kèm các yêu cầu tùy chỉnh.</p>
 
         {error && <div className={styles.errorAlert}>{error}</div>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
-            <label>Title</label>
+            <label>Tiêu đề</label>
             <input
               type="text"
               className="input-field"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              placeholder="e.g. Vintage Rolex Watch"
+              placeholder="Ví dụ: Đồng hồ Rolex Cổ"
             />
           </div>
           
           <div className={styles.inputGroup}>
-            <label>Description</label>
+            <label>Mô tả</label>
             <textarea
               className="input-field"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               required
-              placeholder="Describe your item in detail..."
+              placeholder="Mô tả chi tiết vật phẩm..."
             />
           </div>
 
           <div className={styles.row}>
             <div className={styles.inputGroup}>
-              <label>Starting Price ($)</label>
+              <label>Giá Khởi Điểm ($)</label>
               <input
                 type="number"
                 min="0"
@@ -114,23 +114,23 @@ export default function CreateAuctionPage() {
             </div>
             
             <div className={styles.inputGroup}>
-              <label>Duration (Hours)</label>
+              <label>Thời Gian (Giờ)</label>
               <select
                 className="input-field"
                 value={durationHours}
                 onChange={(e) => setDurationHours(e.target.value)}
               >
-                <option value="1">1 Hour</option>
-                <option value="12">12 Hours</option>
-                <option value="24">24 Hours</option>
-                <option value="48">48 Hours</option>
-                <option value="72">3 Days</option>
-                <option value="168">1 Week</option>
+                <option value="1">1 Giờ</option>
+                <option value="12">12 Giờ</option>
+                <option value="24">24 Giờ</option>
+                <option value="48">48 Giờ</option>
+                <option value="72">3 Ngày</option>
+                <option value="168">1 Tuần</option>
               </select>
             </div>
           </div>
 
-          <div className={styles.sectionDivider}>Bidder Requirements</div>
+          <div className={styles.sectionDivider}>Yêu Cầu Đối Với Người Mua</div>
 
           <div className={styles.checkboxGroup}>
             <input
@@ -139,11 +139,11 @@ export default function CreateAuctionPage() {
               checked={allowUnverified}
               onChange={(e) => setAllowUnverified(e.target.checked)}
             />
-            <label htmlFor="allowUnverified">Allow Unverified Users to Bid</label>
+            <label htmlFor="allowUnverified">Cho phép người dùng chưa xác minh tham gia</label>
           </div>
 
           <div className={styles.inputGroup}>
-            <label>Minimum Reputation Score Required</label>
+            <label>Điểm uy tín tối thiểu yêu cầu</label>
             <input
               type="number"
               className="input-field"
@@ -156,7 +156,7 @@ export default function CreateAuctionPage() {
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '24px' }}>
-            {loading ? 'Creating...' : 'Launch Auction'}
+            {loading ? 'Đang tạo...' : 'Bắt Đầu Đấu Giá'}
           </button>
         </form>
       </div>

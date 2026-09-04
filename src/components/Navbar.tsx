@@ -36,21 +36,21 @@ export default function Navbar() {
   return (
     <nav className={`${styles.navbar} glass-panel`}>
       <div className={styles.logo}>
-        <Link href="/">BidMaster</Link>
+        <Link href="/">Sàn Đấu Giá</Link>
       </div>
       <div className={styles.links}>
         {user ? (
           <>
-            <Link href="/auctions/create" className={styles.navLink}>Create Auction</Link>
-            <Link href="/messages" className={styles.navLink}>Messages</Link>
-            <Link href="/profile" className={styles.navLink}>Profile</Link>
+            <Link href="/auctions/create" className={styles.navLink}>Tạo Đấu Giá</Link>
+            <Link href="/messages" className={styles.navLink}>Tin Nhắn</Link>
+            <Link href="/profile" className={styles.navLink}>Hồ Sơ</Link>
             <button onClick={handleSignOut} className="btn-secondary" style={{ padding: '2px 4px' }}>
-              Sign Out
+              Đăng Xuất
             </button>
           </>
         ) : (
           <>
-            <Link href="/login" className="btn-secondary" style={{ padding: '8px 16px' }}>Log In</Link>
+            <Link href="/login" className="btn-secondary" style={{ padding: '8px 16px' }}>Đăng Nhập</Link>
           </>
         )}
       </div>

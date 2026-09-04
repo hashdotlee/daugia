@@ -105,23 +105,23 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
         return
       }
 
-      if (!profile) throw new Error('Profile not found.')
+      if (!profile) throw new Error('Không tìm thấy hồ sơ.')
 
       // Check verification
       if (!auction.allow_unverified && !profile.is_verified) {
-        throw new Error('You must verify your account (Phone/Facebook) to bid on this auction.')
+        throw new Error('Bạn phải xác minh tài khoản (SĐT/Facebook) để đấu giá.')
       }
 
       // Check reputation
       if (profile.reputation_score < auction.min_reputation) {
-        throw new Error(`You need a reputation score of at least ${auction.min_reputation} to bid here.`)
+        throw new Error(`Bạn cần điểm uy tín ít nhất là ${auction.min_reputation} để tham gia.`)
       }
 
       const amount = parseFloat(bidAmount)
       const currentHighest = bids.length > 0 ? bids[0].amount : auction.start_price
 
       if (amount <= currentHighest) {
-        throw new Error(`Bid must be higher than $${currentHighest}`)
+        throw new Error(`Mức giá phải cao hơn $${currentHighest}`)
       }
 
       const { error: insertError } = await supabase
@@ -142,8 +142,8 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
     }
   }
 
-  if (loading) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Loading auction...</div>
-  if (!auction) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Auction not found.</div>
+  if (loading) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Đang tải cuộc đấu giá...</div>
+  if (!auction) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Không tìm thấy cuộc đấu giá.</div>
 
   const isEnded = new Date() > new Date(auction.end_time) || auction.status !== 'active'
   const currentHighest = bids.length > 0 ? bids[0].amount : auction.start_price
@@ -157,15 +157,15 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
             <h1 className={styles.title}>{auction.title}</h1>
             <div className={styles.badges}>
               {auction.status === 'active' && !isEnded ? (
-                <span className={styles.badgeActive}>Live</span>
+                <span className={styles.badgeActive}>Đang diễn ra</span>
               ) : (
-                <span className={styles.badgeEnded}>Ended</span>
+                <span className={styles.badgeEnded}>Đã kết thúc</span>
               )}
-              {!auction.allow_unverified && <span className={styles.badgeInfo}>Verified Only</span>}
+              {!auction.allow_unverified && <span className={styles.badgeInfo}>Chỉ Đã Xác Minh</span>}
             </div>
           </div>
           
-          <p className={styles.creator}>Hosted by {(auction.creator as any)?.display_name}</p>
+          <p className={styles.creator}>Tổ chức bởi {(auction.creator as any)?.display_name}</p>
           
           <div className={styles.description}>
             <p>{auction.description}</p>
@@ -173,10 +173,10 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
           
           <div className={styles.metaInfo}>
             <div>
-              <strong>Ends At:</strong> {new Date(auction.end_time).toLocaleString()}
+              <strong>Kết Thúc:</strong> {new Date(auction.end_time).toLocaleString()}
             </div>
             <div>
-              <strong>Min. Reputation:</strong> {auction.min_reputation}
+              <strong>Uy Tín Tối Thiểu:</strong> {auction.min_reputation}
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
         <div className={styles.sidebar}>
           <div className={`${styles.biddingPanel} glass-panel`}>
             <div className={styles.currentPrice}>
-              <span className={styles.priceLabel}>Current Highest Bid</span>
+              <span className={styles.priceLabel}>Giá Cao Nhất Hiện Tại</span>
               <span className={styles.priceValue}>${currentHighest.toFixed(2)}</span>
             </div>
 
@@ -206,23 +206,23 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
                   />
                 </div>
                 <button type="submit" className="btn-primary" disabled={bidLoading}>
-                  {bidLoading ? 'Placing Bid...' : 'Place Bid'}
+                  {bidLoading ? 'Đang đặt giá...' : 'Đặt Giá'}
                 </button>
               </form>
             ) : (
-              <div className={styles.endedMessage}>This auction has ended.</div>
+              <div className={styles.endedMessage}>Cuộc đấu giá này đã kết thúc.</div>
             )}
           </div>
 
           <div className={`${styles.historyPanel} glass-panel`}>
-            <h3 className={styles.historyTitle}>Bid History</h3>
+            <h3 className={styles.historyTitle}>Lịch Sử Đấu Giá</h3>
             {bids.length === 0 ? (
-              <p className={styles.noBids}>No bids yet. Be the first!</p>
+              <p className={styles.noBids}>Chưa có lượt đặt giá. Hãy là người đầu tiên!</p>
             ) : (
               <ul className={styles.bidList}>
                 {bids.map((bid) => (
                   <li key={bid.id} className={styles.bidItem}>
-                    <span className={styles.bidderName}>{(bid.bidder as any)?.display_name || 'Anonymous'}</span>
+                    <span className={styles.bidderName}>{(bid.bidder as any)?.display_name || 'Ẩn danh'}</span>
                     <span className={styles.bidAmount}>${bid.amount.toFixed(2)}</span>
                   </li>
                 ))}

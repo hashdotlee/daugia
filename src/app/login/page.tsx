@@ -23,7 +23,7 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         if (!displayName) {
-          throw new Error('Display Name is required for registration.')
+          throw new Error('Tên hiển thị là bắt buộc.')
         }
         const { error } = await supabase.auth.signUp({
           email,
@@ -35,9 +35,7 @@ export default function LoginPage() {
           },
         })
         if (error) throw error
-        // Note: Depending on Supabase settings, email confirmation might be required.
-        // For this demo, we assume they can log in immediately or confirm via email.
-        alert('Registration successful! Please check your email for confirmation if required, or sign in.')
+        alert('Đăng ký thành công! Bạn có thể đăng nhập ngay.')
         setIsSignUp(false)
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -58,9 +56,9 @@ export default function LoginPage() {
   return (
     <div className="page-container">
       <div className={`${styles.authContainer} glass-panel`}>
-        <h1 className={styles.title}>{isSignUp ? 'Create an Account' : 'Welcome Back'}</h1>
+        <h1 className={styles.title}>{isSignUp ? 'Tạo Tài Khoản' : 'Chào Mừng Trở Lại'}</h1>
         <p className={styles.subtitle}>
-          {isSignUp ? 'Join BidMaster to start bidding!' : 'Sign in to access your auctions and bids.'}
+          {isSignUp ? 'Tham gia Sàn Đấu Giá ngay!' : 'Đăng nhập để xem các phiên đấu giá của bạn.'}
         </p>
 
         {error && <div className={styles.errorAlert}>{error}</div>}
@@ -68,7 +66,7 @@ export default function LoginPage() {
         <form onSubmit={handleAuth} className={styles.form}>
           {isSignUp && (
             <div className={styles.inputGroup}>
-              <label>Display Name</label>
+              <label>Tên hiển thị</label>
               <input
                 type="text"
                 className="input-field"
@@ -91,7 +89,7 @@ export default function LoginPage() {
             />
           </div>
           <div className={styles.inputGroup}>
-            <label>Password</label>
+            <label>Mật khẩu</label>
             <input
               type="password"
               className="input-field"
@@ -103,14 +101,14 @@ export default function LoginPage() {
           </div>
           
           <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '16px' }}>
-            {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+            {loading ? 'Đang xử lý...' : (isSignUp ? 'Đăng Ký' : 'Đăng Nhập')}
           </button>
         </form>
 
         <div className={styles.toggleText}>
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+          {isSignUp ? 'Đã có tài khoản?' : "Chưa có tài khoản?"}{' '}
           <button onClick={() => setIsSignUp(!isSignUp)} className={styles.toggleBtn}>
-            {isSignUp ? 'Sign In' : 'Sign Up'}
+            {isSignUp ? 'Đăng Nhập' : 'Đăng Ký'}
           </button>
         </div>
       </div>
