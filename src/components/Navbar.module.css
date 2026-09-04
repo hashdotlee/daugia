@@ -13,7 +13,7 @@
 }
 
 .logo a {
-  color: var(--background);
+  color: #fff;
 }
 
 .links {
@@ -23,7 +23,7 @@
 }
 
 .navLink {
-  color: var(--background);
+  color: #fff;
 }
 
 .navLink:hover {

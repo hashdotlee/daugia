@@ -100,16 +100,16 @@ export default function CreateAuctionPage() {
 
           <div className={styles.row}>
             <div className={styles.inputGroup}>
-              <label>Giá Khởi Điểm ($)</label>
+              <label>Giá Khởi Điểm (VNĐ)</label>
               <input
                 type="number"
                 min="0"
-                step="0.01"
+                step="1000"
                 className="input-field"
                 value={startPrice}
                 onChange={(e) => setStartPrice(e.target.value)}
                 required
-                placeholder="100.00"
+                placeholder="100000"
               />
             </div>
             

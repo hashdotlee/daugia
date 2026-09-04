@@ -121,7 +121,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
       const currentHighest = bids.length > 0 ? bids[0].amount : auction.start_price
 
       if (amount <= currentHighest) {
-        throw new Error(`Mức giá phải cao hơn $${currentHighest}`)
+        throw new Error(`Mức giá phải cao hơn ${currentHighest.toLocaleString('vi-VN')} VNĐ`)
       }
 
       const { error: insertError } = await supabase
@@ -186,7 +186,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
           <div className={`${styles.biddingPanel} glass-panel`}>
             <div className={styles.currentPrice}>
               <span className={styles.priceLabel}>Giá Cao Nhất Hiện Tại</span>
-              <span className={styles.priceValue}>${currentHighest.toFixed(2)}</span>
+              <span className={styles.priceValue}>{currentHighest.toLocaleString('vi-VN')} VNĐ</span>
             </div>
 
             {error && <div className={styles.errorAlert}>{error}</div>}
@@ -196,12 +196,12 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
                 <div className={styles.inputGroup}>
                   <input
                     type="number"
-                    min={currentHighest + 0.01}
-                    step="0.01"
+                    min={currentHighest + 1000}
+                    step="1000"
                     className="input-field"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder={`> $${currentHighest}`}
+                    placeholder={`> ${currentHighest.toLocaleString('vi-VN')} VNĐ`}
                     required
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
                 {bids.map((bid) => (
                   <li key={bid.id} className={styles.bidItem}>
                     <span className={styles.bidderName}>{(bid.bidder as any)?.display_name || 'Ẩn danh'}</span>
-                    <span className={styles.bidAmount}>${bid.amount.toFixed(2)}</span>
+                    <span className={styles.bidAmount}>{bid.amount.toLocaleString('vi-VN')} VNĐ</span>
                   </li>
                 ))}
               </ul>

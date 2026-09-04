@@ -108,7 +108,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           <ul>
             {auctions.map(a => (
               <li key={a.id}>
-                <Link href={`/auctions/${a.id}`}>{a.title}</Link> - ${a.start_price} ({a.status})
+                <Link href={`/auctions/${a.id}`}>{a.title}</Link> - {a.start_price.toLocaleString('vi-VN')} VNĐ ({a.status})
               </li>
             ))}
           </ul>

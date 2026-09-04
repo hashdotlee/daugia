@@ -44,7 +44,7 @@ export default async function HomePage() {
                 <div className={styles.cardDetails}>
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Giá Khởi Điểm</span>
-                    <span className={styles.detailValue}>${auction.start_price.toFixed(2)}</span>
+                    <span className={styles.detailValue}>{auction.start_price.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Kết Thúc Lúc</span>

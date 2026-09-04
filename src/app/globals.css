@@ -1,9 +1,9 @@
 :root {
-  --background: #FFF59D; /* Soft Yellow */
-  --foreground: #D50000; /* Red text */
+  --background: #FFFFFF; /* White */
+  --foreground: #000000; /* Black text */
   --primary: #D50000; /* Red */
   --secondary: #D50000; /* Red */
-  --text-muted: #B71C1C; /* Darker Red */
+  --text-muted: #828282; /* Gray */
   --link: #D50000;
   --link-hover: #FF0000;
 }
@@ -35,7 +35,7 @@ a:hover {
 
 .btn-primary, .btn-secondary {
   background-color: var(--primary);
-  color: var(--background);
+  color: #ffffff;
   border: 1px solid var(--primary);
   padding: 4px 8px;
   font-size: 10pt;
@@ -54,9 +54,9 @@ a:hover {
   padding: 4px;
   font-family: Verdana, Geneva, sans-serif;
   font-size: 10pt;
-  border: 1px solid var(--primary);
-  background-color: var(--background);
-  color: var(--primary);
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #000;
 }
 
 .glass-panel {
