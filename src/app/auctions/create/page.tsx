@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import imageCompression from 'browser-image-compression'
 import styles from './create.module.css'
 
 export default function CreateAuctionPage() {
@@ -14,6 +15,10 @@ export default function CreateAuctionPage() {
   const [minReputation, setMinReputation] = useState('0')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Image state
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const supabase = createClient()
   const router = useRouter()
@@ -28,6 +33,48 @@ export default function CreateAuctionPage() {
     checkAuth()
   }, [router, supabase])
 
+  const handleImageChange = async (file: File | null) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file ảnh hợp lệ.')
+      return
+    }
+
+    try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true
+      }
+      const compressedFile = await imageCompression(file, options)
+      setImageFile(compressedFile)
+      
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(compressedFile)
+    } catch (err) {
+      console.error(err)
+      alert('Lỗi khi nén ảnh.')
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile()
+        if (file) {
+          handleImageChange(file)
+          break
+        }
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -36,6 +83,35 @@ export default function CreateAuctionPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Chưa xác thực')
+
+      // Fix for "violates foreign key constraint auctions_creator_id_fkey"
+      // Attempt to safely upsert the profile in case the auth trigger failed.
+      // This will fail if RLS blocks it, but it's a good fallback attempt.
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Unknown',
+      }, { onConflict: 'id', ignoreDuplicates: true }).select()
+
+      let imageUrl = null
+
+      // Upload image if exists
+      if (imageFile) {
+        const fileExt = imageFile.name ? imageFile.name.split('.').pop() : 'jpg'
+        const fileName = `${Math.random()}.${fileExt}`
+        const filePath = `${user.id}/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('auction_images')
+          .upload(filePath, imageFile)
+
+        if (uploadError) throw new Error('Lỗi tải ảnh lên Storage: ' + uploadError.message)
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('auction_images')
+          .getPublicUrl(filePath)
+          
+        imageUrl = publicUrl
+      }
 
       const startTime = new Date()
       const endTime = new Date(startTime.getTime() + parseInt(durationHours) * 60 * 60 * 1000)
@@ -50,7 +126,8 @@ export default function CreateAuctionPage() {
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           allow_unverified: allowUnverified,
-          min_reputation: parseInt(minReputation)
+          min_reputation: parseInt(minReputation),
+          image_url: imageUrl
         })
         .select()
         .single()
@@ -67,9 +144,9 @@ export default function CreateAuctionPage() {
 
   return (
     <div className="page-container">
-      <div className={`${styles.createContainer} glass-panel`}>
+      <div className={`${styles.createContainer} glass-panel`} onPaste={handlePaste}>
         <h1 className={styles.title}>Tạo Cuộc Đấu Giá Mới</h1>
-        <p className={styles.subtitle}>Thiết lập vật phẩm đấu giá của bạn kèm các yêu cầu tùy chỉnh.</p>
+        <p className={styles.subtitle}>Thiết lập vật phẩm đấu giá của bạn kèm các yêu cầu tùy chỉnh. Hỗ trợ dán (Ctrl+V) ảnh từ clipboard.</p>
 
         {error && <div className={styles.errorAlert}>{error}</div>}
 
@@ -96,6 +173,23 @@ export default function CreateAuctionPage() {
               required
               placeholder="Mô tả chi tiết vật phẩm..."
             />
+          </div>
+          
+          <div className={styles.inputGroup}>
+            <label>Ảnh sản phẩm (Tùy chọn)</label>
+            <input
+              type="file"
+              accept="image/*"
+              className="input-field"
+              onChange={(e) => handleImageChange(e.target.files ? e.target.files[0] : null)}
+            />
+            {imagePreview && (
+              <div style={{ marginTop: '10px' }}>
+                <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', border: '1px solid #ccc' }} />
+                <br />
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="btn-secondary" style={{ marginTop: '5px' }}>Xóa ảnh</button>
+              </div>
+            )}
           </div>
 
           <div className={styles.row}>

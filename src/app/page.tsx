@@ -39,6 +39,9 @@ export default async function HomePage() {
           {auctions?.map((auction) => (
             <Link href={`/auctions/${auction.id}`} key={auction.id} className={`${styles.card} glass-panel`}>
               <div className={styles.cardContent}>
+                {auction.image_url && (
+                  <img src={auction.image_url} alt={auction.title} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px', marginBottom: '8px' }} />
+                )}
                 <h3 className={styles.cardTitle}>{auction.title}</h3>
                 <p className={styles.cardCreator}>Bởi {(auction.creator as any)?.display_name || 'Ẩn danh'}</p>
                 <div className={styles.cardDetails}>

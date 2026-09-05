@@ -167,6 +167,16 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
           
           <p className={styles.creator}>Tổ chức bởi {(auction.creator as any)?.display_name}</p>
           
+          {auction.image_url && (
+            <div style={{ margin: '16px 0', textAlign: 'center' }}>
+              <img 
+                src={auction.image_url} 
+                alt={auction.title} 
+                style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', border: '1px solid #ccc', borderRadius: '4px' }} 
+              />
+            </div>
+          )}
+
           <div className={styles.description}>
             <p>{auction.description}</p>
           </div>
