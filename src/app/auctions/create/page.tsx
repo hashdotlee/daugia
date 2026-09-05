@@ -17,8 +17,7 @@ export default function CreateAuctionPage() {
   const [error, setError] = useState<string | null>(null)
   
   // Image state
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageFiles, setImageFiles] = useState<{file: File, preview: string}[]>([])
 
   const supabase = createClient()
   const router = useRouter()
@@ -33,10 +32,12 @@ export default function CreateAuctionPage() {
     checkAuth()
   }, [router, supabase])
 
-  const handleImageChange = async (file: File | null) => {
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      alert('Vui lòng chọn file ảnh hợp lệ.')
+  const handleImageChange = async (files: FileList | null) => {
+    if (!files) return
+    const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+    if (validFiles.length === 0) return
+    if (imageFiles.length + validFiles.length > 5) {
+      alert('Chỉ được tải lên tối đa 5 ảnh.')
       return
     }
 
@@ -46,32 +47,40 @@ export default function CreateAuctionPage() {
         maxWidthOrHeight: 1024,
         useWebWorker: true
       }
-      const compressedFile = await imageCompression(file, options)
-      setImageFile(compressedFile)
+      const newImages = await Promise.all(validFiles.map(async (file) => {
+        const compressedFile = await imageCompression(file, options)
+        const preview = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(compressedFile)
+        })
+        return { file: compressedFile, preview }
+      }))
       
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(compressedFile)
+      setImageFiles(prev => [...prev, ...newImages])
     } catch (err) {
       console.error(err)
       alert('Lỗi khi nén ảnh.')
     }
   }
 
+  const removeImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items
     if (!items) return
     
+    const dt = new DataTransfer()
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
         const file = items[i].getAsFile()
-        if (file) {
-          handleImageChange(file)
-          break
-        }
+        if (file) dt.items.add(file)
       }
+    }
+    if (dt.files.length > 0) {
+      handleImageChange(dt.files)
     }
   }
 
@@ -92,26 +101,30 @@ export default function CreateAuctionPage() {
         display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Unknown',
       }, { onConflict: 'id', ignoreDuplicates: true }).select()
 
-      let imageUrl = null
+      let imageUrls: string[] = []
 
       // Upload image if exists
-      if (imageFile) {
-        const fileExt = imageFile.name ? imageFile.name.split('.').pop() : 'jpg'
-        const fileName = `${Math.random()}.${fileExt}`
-        const filePath = `${user.id}/${fileName}`
+      if (imageFiles.length > 0) {
+        for (const { file } of imageFiles) {
+          const fileExt = file.name ? file.name.split('.').pop() : 'jpg'
+          const fileName = `${Math.random()}.${fileExt}`
+          const filePath = `${user.id}/${fileName}`
 
-        const { error: uploadError } = await supabase.storage
-          .from('auction_images')
-          .upload(filePath, imageFile)
+          const { error: uploadError } = await supabase.storage
+            .from('auction_images')
+            .upload(filePath, file)
 
-        if (uploadError) throw new Error('Lỗi tải ảnh lên Storage: ' + uploadError.message)
+          if (uploadError) throw new Error('Lỗi tải ảnh lên Storage: ' + uploadError.message)
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('auction_images')
-          .getPublicUrl(filePath)
-          
-        imageUrl = publicUrl
+          const { data: { publicUrl } } = supabase.storage
+            .from('auction_images')
+            .getPublicUrl(filePath)
+            
+          imageUrls.push(publicUrl)
+        }
       }
+      
+      const finalImageUrl = imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
 
       const startTime = new Date()
       const endTime = new Date(startTime.getTime() + parseInt(durationHours) * 60 * 60 * 1000)
@@ -127,7 +140,7 @@ export default function CreateAuctionPage() {
           end_time: endTime.toISOString(),
           allow_unverified: allowUnverified,
           min_reputation: parseInt(minReputation),
-          image_url: imageUrl
+          image_url: finalImageUrl
         })
         .select()
         .single()
@@ -176,18 +189,28 @@ export default function CreateAuctionPage() {
           </div>
           
           <div className={styles.inputGroup}>
-            <label>Ảnh sản phẩm (Tùy chọn)</label>
+            <label>Ảnh sản phẩm (Tối đa 5 ảnh)</label>
             <input
               type="file"
               accept="image/*"
+              multiple
               className="input-field"
-              onChange={(e) => handleImageChange(e.target.files ? e.target.files[0] : null)}
+              onChange={(e) => handleImageChange(e.target.files)}
             />
-            {imagePreview && (
-              <div style={{ marginTop: '10px' }}>
-                <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', border: '1px solid #ccc' }} />
-                <br />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="btn-secondary" style={{ marginTop: '5px' }}>Xóa ảnh</button>
+            {imageFiles.length > 0 && (
+              <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {imageFiles.map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <img src={img.preview} alt="Preview" style={{ width: '100px', height: '100px', objectFit: 'cover', border: '1px solid #ccc' }} />
+                    <button 
+                      type="button" 
+                      onClick={() => removeImage(idx)} 
+                      style={{ position: 'absolute', top: 0, right: 0, background: 'red', color: 'white', border: 'none', cursor: 'pointer' }}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

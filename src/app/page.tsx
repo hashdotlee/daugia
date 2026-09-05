@@ -36,11 +36,22 @@ export default async function HomePage() {
         <div className={styles.emptyState}>Hiện chưa có cuộc đấu giá nào. Hãy là người đầu tiên tạo đấu giá!</div>
       ) : (
         <div className={styles.grid}>
-          {auctions?.map((auction) => (
+          {auctions?.map((auction) => {
+            const firstImage = (() => {
+              if (!auction.image_url) return null;
+              try {
+                const arr = JSON.parse(auction.image_url);
+                return Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
+              } catch {
+                return auction.image_url;
+              }
+            })();
+
+            return (
             <Link href={`/auctions/${auction.id}`} key={auction.id} className={`${styles.card} glass-panel`}>
               <div className={styles.cardContent}>
-                {auction.image_url && (
-                  <img src={auction.image_url} alt={auction.title} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
+                {firstImage && (
+                  <img src={firstImage} alt={auction.title} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
                 )}
                 <div>
                   <h3 className={styles.cardTitle}>{auction.title}</h3>
@@ -69,7 +80,8 @@ export default async function HomePage() {
                 </div>
               </div>
             </Link>
-          ))}
+            )
+          })}
         </div>
       )}
     </main>

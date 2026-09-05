@@ -31,8 +31,25 @@ function MessagesContent() {
       }
       setCurrentUser(user)
 
+      if (isSupport) {
+        const { data: adminProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin')
+          .limit(1)
+          .single()
+        
+        if (adminProfile) {
+           router.replace('/messages?to=' + adminProfile.id)
+           return
+        } else {
+           alert("Hệ thống chưa thiết lập tài khoản Admin!")
+           router.replace('/messages')
+           return
+        }
+      }
+
       // Fetch contacts (people who we sent messages to or received from)
-      // This is a complex query for a simple MVP, so we'll just fetch all unique users from messages
       const { data: allMessages } = await supabase
         .from('messages')
         .select('sender_id, receiver_id')
@@ -60,22 +77,15 @@ function MessagesContent() {
     }
 
     fetchInitial()
-  }, [supabase, router, activeUserId])
+  }, [supabase, router, activeUserId, isSupport])
 
   useEffect(() => {
-    if (!currentUser) return
+    if (!currentUser || !activeUserId || isSupport) return
 
     const fetchMessages = async () => {
       let query = supabase.from('messages').select('*, sender:profiles!messages_sender_id_fkey(display_name)')
       
-      if (isSupport) {
-        // Support messages have receiver_id = null
-        query = query.is('receiver_id', null)
-      } else if (activeUserId) {
-        query = query.or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeUserId}),and(sender_id.eq.${activeUserId},receiver_id.eq.${currentUser.id})`)
-      } else {
-        return // no active conversation
-      }
+      query = query.or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeUserId}),and(sender_id.eq.${activeUserId},receiver_id.eq.${currentUser.id})`)
 
       const { data } = await query.order('created_at', { ascending: true })
       setMessages(data || [])
@@ -83,13 +93,13 @@ function MessagesContent() {
 
     fetchMessages()
 
+    const channelName = `messages_${currentUser.id}_${activeUserId}_${Date.now()}`
     const channel = supabase
-      .channel('public:messages')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
-          // In a real app, verify the message belongs to the current active chat
           fetchMessages()
         }
       )
@@ -102,7 +112,7 @@ function MessagesContent() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !currentUser) return
+    if (!newMessage.trim() || !currentUser || !activeUserId) return
     
     setSending(true)
     try {
@@ -110,7 +120,7 @@ function MessagesContent() {
         .from('messages')
         .insert({
           sender_id: currentUser.id,
-          receiver_id: isSupport ? null : activeUserId,
+          receiver_id: activeUserId,
           content: newMessage
         })
 

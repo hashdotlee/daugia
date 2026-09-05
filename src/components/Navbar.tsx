@@ -58,8 +58,8 @@ export default function Navbar() {
         {user ? (
           <>
             {isAdmin && (
-              <Link href="/admin" className={styles.navLink} style={{ color: '#D50000', fontWeight: 'bold' }}>
-                Admin
+              <Link href="/admin" className={styles.navLink} style={{ color: '#FFEB3B', fontWeight: 'bold' }}>
+                Quản Lý
               </Link>
             )}
             <Link href="/auctions/create" className={styles.navLink}>Tạo Đấu Giá</Link>
@@ -67,15 +67,35 @@ export default function Navbar() {
             <Link href="/profile" className={styles.navLink}>Hồ Sơ</Link>
             <button 
               onClick={handleSignOut} 
-              className="btn-secondary" 
-              style={{ padding: '4px 10px', fontSize: '9pt', cursor: 'pointer' }}
+              style={{ 
+                padding: '4px 10px', 
+                fontSize: '9pt', 
+                cursor: 'pointer',
+                backgroundColor: 'transparent',
+                color: 'white',
+                border: '1px solid white',
+                borderRadius: '3px'
+              }}
             >
               Đăng Xuất
             </button>
           </>
         ) : (
           <>
-            <Link href="/login" className="btn-secondary" style={{ padding: '8px 16px' }}>Đăng Nhập</Link>
+            <Link 
+              href="/login" 
+              style={{ 
+                padding: '4px 10px', 
+                fontSize: '9pt',
+                backgroundColor: 'transparent',
+                color: 'white',
+                border: '1px solid white',
+                borderRadius: '3px',
+                textDecoration: 'none'
+              }}
+            >
+              Đăng Nhập
+            </Link>
           </>
         )}
       </div>

@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import styles from './admin.module.css'
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'users' | 'auctions'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'auctions' | 'support'>('users')
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState<any[]>([])
   const [auctions, setAuctions] = useState<any[]>([])
+  const [supportMessages, setSupportMessages] = useState<any[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,6 +67,16 @@ export default function AdminDashboard() {
         .order('created_at', { ascending: false })
       if (auctionsError) throw auctionsError
       setAuctions(auctionsData || [])
+
+      // Fetch support messages
+      const { data: supportData, error: supportError } = await supabase
+        .from('messages')
+        .select('*, sender:profiles!messages_sender_id_fkey(display_name)')
+        .is('receiver_id', null)
+        .order('created_at', { ascending: false })
+      if (!supportError) {
+        setSupportMessages(supportData || [])
+      }
 
     } catch (err: any) {
       setError(err.message)

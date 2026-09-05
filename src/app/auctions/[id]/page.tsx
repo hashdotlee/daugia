@@ -211,15 +211,29 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
           
           <p className={styles.creator}>Tổ chức bởi {(auction.creator as any)?.display_name}</p>
           
-          {auction.image_url && (
-            <div style={{ margin: '16px 0', textAlign: 'center' }}>
-              <img 
-                src={auction.image_url} 
-                alt={auction.title} 
-                style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', border: '1px solid #ccc', borderRadius: '4px' }} 
-              />
-            </div>
-          )}
+          {(() => {
+            if (!auction.image_url) return null;
+            let urls: string[] = [];
+            try {
+              const arr = JSON.parse(auction.image_url);
+              urls = Array.isArray(arr) ? arr : [auction.image_url];
+            } catch {
+              urls = [auction.image_url];
+            }
+            
+            return (
+              <div style={{ margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+                {urls.map((url, idx) => (
+                  <img 
+                    key={idx}
+                    src={url} 
+                    alt={`${auction.title} - Ảnh ${idx + 1}`} 
+                    style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', border: '1px solid #ccc', borderRadius: '4px' }} 
+                  />
+                ))}
+              </div>
+            )
+          })()}
 
           <div className={styles.description}>
             <p>{auction.description}</p>
