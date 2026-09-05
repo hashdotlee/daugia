@@ -2,8 +2,8 @@ import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import styles from './page.module.css'
 
-// Revalidate this page every 10 seconds to keep auctions relatively fresh
-export const revalidate = 10;
+// Đảm bảo trang luôn lấy dữ liệu mới nhất, không bị cache
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const supabase = await createClient()
