@@ -9,27 +9,43 @@ import styles from './Navbar.module.css'
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
     const getUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profile?.role === 'admin') {
+          setIsAdmin(true)
+        }
+      }
     }
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null)
+        if (!session) setIsAdmin(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    setUser(null)
+    setIsAdmin(false)
     router.push('/login')
   }
 
@@ -41,10 +57,19 @@ export default function Navbar() {
       <div className={styles.links}>
         {user ? (
           <>
+            {isAdmin && (
+              <Link href="/admin" className={styles.navLink} style={{ color: '#D50000', fontWeight: 'bold' }}>
+                Admin
+              </Link>
+            )}
             <Link href="/auctions/create" className={styles.navLink}>Tạo Đấu Giá</Link>
             <Link href="/messages" className={styles.navLink}>Tin Nhắn</Link>
             <Link href="/profile" className={styles.navLink}>Hồ Sơ</Link>
-            <button onClick={handleSignOut} className="btn-secondary" style={{ padding: '2px 4px' }}>
+            <button 
+              onClick={handleSignOut} 
+              className="btn-secondary" 
+              style={{ padding: '4px 10px', fontSize: '9pt', cursor: 'pointer' }}
+            >
               Đăng Xuất
             </button>
           </>
