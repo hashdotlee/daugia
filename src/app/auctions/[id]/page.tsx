@@ -16,6 +16,10 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
   const [bidAmount, setBidAmount] = useState('')
   const [bidLoading, setBidLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Penalty state
+  const [penalties, setPenalties] = useState<any[]>([])
+  const [penalizing, setPenalizing] = useState(false)
 
   const supabase = createClient()
   const router = useRouter()
@@ -55,9 +59,17 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
         if (bidsError) throw bidsError
         setBids(bidsData || [])
 
+        // Fetch penalties
+        const { data: penaltiesData } = await supabase
+          .from('penalties')
+          .select('*')
+          .eq('auction_id', id)
+        setPenalties(penaltiesData || [])
+
         // Set up realtime subscription for bids
+        const channelName = `bids_${id}_${Date.now()}`
         const channel = supabase
-          .channel(`public:bids:auction_id=eq.${id}`)
+          .channel(channelName)
           .on(
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${id}` },
@@ -143,11 +155,42 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
+  const handlePenalty = async (targetUserId: string) => {
+    if (!user) return
+    if (!confirm('Bạn có chắc chắn muốn phạt người này -5 điểm uy tín? Hành động này không thể hoàn tác!')) return
+
+    setPenalizing(true)
+    try {
+      const { error: penaltyError } = await supabase
+        .from('penalties')
+        .insert({
+          auction_id: id,
+          penalized_by: user.id,
+          penalized_user: targetUserId
+        })
+
+      if (penaltyError) throw new Error(penaltyError.message)
+
+      alert('Đã ghi nhận điểm phạt -5 uy tín!')
+      setPenalties([...penalties, { auction_id: id, penalized_by: user.id, penalized_user: targetUserId }])
+    } catch (err: any) {
+      alert('Lỗi: ' + err.message)
+    } finally {
+      setPenalizing(false)
+    }
+  }
+
   if (loading) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Đang tải cuộc đấu giá...</div>
   if (!auction) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Không tìm thấy cuộc đấu giá.</div>
 
   const isEnded = new Date() > new Date(auction.end_time) || auction.status !== 'active'
   const currentHighest = bids.length > 0 ? bids[0].amount : auction.start_price
+  const winner = bids.length > 0 ? bids[0].bidder_id : null
+  const isCreator = user?.id === auction.creator_id
+  const isWinner = user?.id === winner
+
+  const hasPenalizedWinner = penalties.some(p => p.penalized_by === auction.creator_id && p.penalized_user === winner)
+  const hasPenalizedCreator = penalties.some(p => p.penalized_by === winner && p.penalized_user === auction.creator_id)
 
   return (
     <div className="page-container">
@@ -221,7 +264,43 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
                 </button>
               </form>
             ) : (
-              <div className={styles.endedMessage}>Cuộc đấu giá này đã kết thúc.</div>
+              <div className={styles.endedMessage}>
+                Cuộc đấu giá này đã kết thúc.
+                {winner && (
+                  <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fff', border: '1px solid #ffcccc', borderRadius: '4px' }}>
+                    <h4 style={{ color: '#D50000', marginBottom: '8px' }}>Xử Lý Vi Phạm</h4>
+                    {isCreator && (
+                      <div>
+                        <p style={{ fontSize: '12px', marginBottom: '8px' }}>Nếu người thắng không chịu thanh toán, bạn có thể phạt họ.</p>
+                        <button 
+                          onClick={() => handlePenalty(winner)} 
+                          className="btn-secondary" 
+                          disabled={penalizing || hasPenalizedWinner}
+                          style={{ borderColor: '#D50000', color: '#D50000' }}
+                        >
+                          {hasPenalizedWinner ? 'Đã phạt người thắng' : 'Phạt Người Thắng (-5 điểm)'}
+                        </button>
+                      </div>
+                    )}
+                    {isWinner && (
+                      <div style={{ marginTop: isCreator ? '16px' : '0' }}>
+                        <p style={{ fontSize: '12px', marginBottom: '8px' }}>Nếu người bán không giao hàng, bạn có thể phạt họ.</p>
+                        <button 
+                          onClick={() => handlePenalty(auction.creator_id)} 
+                          className="btn-secondary" 
+                          disabled={penalizing || hasPenalizedCreator}
+                          style={{ borderColor: '#D50000', color: '#D50000' }}
+                        >
+                          {hasPenalizedCreator ? 'Đã phạt người bán' : 'Phạt Người Bán (-5 điểm)'}
+                        </button>
+                      </div>
+                    )}
+                    {!isCreator && !isWinner && (
+                      <p style={{ fontSize: '12px', fontStyle: 'italic' }}>Chỉ Người bán và Người thắng mới có quyền phạt lẫn nhau.</p>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

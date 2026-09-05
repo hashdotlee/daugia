@@ -40,30 +40,32 @@ export default async function HomePage() {
             <Link href={`/auctions/${auction.id}`} key={auction.id} className={`${styles.card} glass-panel`}>
               <div className={styles.cardContent}>
                 {auction.image_url && (
-                  <img src={auction.image_url} alt={auction.title} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px', marginBottom: '8px' }} />
+                  <img src={auction.image_url} alt={auction.title} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
                 )}
-                <h3 className={styles.cardTitle}>{auction.title}</h3>
-                <p className={styles.cardCreator}>Bởi {(auction.creator as any)?.display_name || 'Ẩn danh'}</p>
-                <div className={styles.cardDetails}>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Giá Khởi Điểm</span>
-                    <span className={styles.detailValue}>{auction.start_price.toLocaleString('vi-VN')} VNĐ</span>
+                <div>
+                  <h3 className={styles.cardTitle}>{auction.title}</h3>
+                  <p className={styles.cardCreator}>Bởi {(auction.creator as any)?.display_name || 'Ẩn danh'}</p>
+                  <div className={styles.cardDetails}>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Giá Khởi Điểm</span>
+                      <span className={styles.detailValue}>{auction.start_price.toLocaleString('vi-VN')} VNĐ</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span className={styles.detailLabel}>Kết Thúc Lúc</span>
+                      <span className={styles.detailValue}>
+                        {new Date(auction.end_time).toLocaleDateString()} {new Date(auction.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Kết Thúc Lúc</span>
-                    <span className={styles.detailValue}>
-                      {new Date(auction.end_time).toLocaleDateString()} {new Date(auction.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                  
+                  <div className={styles.requirements}>
+                    {!auction.allow_unverified && (
+                      <span className={styles.badge}>Chỉ Đã Xác Minh</span>
+                    )}
+                    {auction.min_reputation > 0 && (
+                      <span className={styles.badge}>Uy tín {'>'} {auction.min_reputation}</span>
+                    )}
                   </div>
-                </div>
-                
-                <div className={styles.requirements}>
-                  {!auction.allow_unverified && (
-                    <span className={styles.badge}>Chỉ Đã Xác Minh</span>
-                  )}
-                  {auction.min_reputation > 0 && (
-                    <span className={styles.badge}>Uy tín {'>'} {auction.min_reputation}</span>
-                  )}
                 </div>
               </div>
             </Link>
