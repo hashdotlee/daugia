@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import styles from './detail.module.css'
 
-export default function AuctionDetailPage({ params }: { params: { id: string } }) {
+export default function AuctionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [auction, setAuction] = useState<any>(null)
   const [bids, setBids] = useState<any[]>([])
   const [user, setUser] = useState<User | null>(null)
@@ -38,7 +39,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
         const { data: auctionData, error: auctionError } = await supabase
           .from('auctions')
           .select('*, creator:profiles(display_name)')
-          .eq('id', params.id)
+          .eq('id', id)
           .single()
 
         if (auctionError) throw auctionError
@@ -48,7 +49,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
         const { data: bidsData, error: bidsError } = await supabase
           .from('bids')
           .select('*, bidder:profiles(display_name)')
-          .eq('auction_id', params.id)
+          .eq('auction_id', id)
           .order('amount', { ascending: false })
 
         if (bidsError) throw bidsError
@@ -56,10 +57,10 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
 
         // Set up realtime subscription for bids
         const channel = supabase
-          .channel(`public:bids:auction_id=eq.${params.id}`)
+          .channel(`public:bids:auction_id=eq.${id}`)
           .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${params.id}` },
+            { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${id}` },
             async (payload) => {
               // Fetch the bidder profile to display their name
               const { data: bidderProfile } = await supabase
@@ -92,7 +93,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
     }
 
     fetchData()
-  }, [params.id, supabase])
+  }, [id, supabase])
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './user.module.css'
 
-export default function PublicProfilePage({ params }: { params: { id: string } }) {
+export default function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [profile, setProfile] = useState<any>(null)
   const [auctions, setAuctions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,7 +27,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', params.id)
+          .eq('id', id)
           .single()
 
         if (profileError) throw profileError
@@ -35,7 +36,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
         const { data: auctionsData } = await supabase
           .from('auctions')
           .select('*')
-          .eq('creator_id', params.id)
+          .eq('creator_id', id)
           .order('created_at', { ascending: false })
 
         setAuctions(auctionsData || [])
@@ -47,14 +48,14 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
     }
 
     fetchData()
-  }, [params.id, supabase])
+  }, [id, supabase])
 
   const handleVote = async (score: number) => {
     if (!currentUser) {
       router.push('/login')
       return
     }
-    if (currentUser.id === params.id) {
+    if (currentUser.id === id) {
       alert("Bạn không thể tự vote cho chính mình.")
       return
     }
@@ -65,7 +66,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
         .from('reputation_votes')
         .upsert({
           voter_id: currentUser.id,
-          target_id: params.id,
+          target_id: id,
           score
         }, { onConflict: 'voter_id,target_id' })
 
@@ -91,7 +92,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
           Trạng thái: {profile.is_verified ? 'Đã xác minh' : 'Chưa xác minh'}
         </div>
         
-        {currentUser && currentUser.id !== params.id && (
+        {currentUser && currentUser.id !== id && (
           <div className={styles.actions}>
             <button className="btn-secondary" onClick={() => handleVote(1)} disabled={voting}>Thích (+1)</button>
             <button className="btn-secondary" onClick={() => handleVote(-1)} disabled={voting}>Không thích (-1)</button>
