@@ -137,7 +137,7 @@ export default function NotificationManager({
       const newToast: ToastItem = {
         id: msg.id,
         senderId: msg.sender_id,
-        senderName,
+        senderName: senderName || 'Người dùng',
         content: msg.content
       }
 
