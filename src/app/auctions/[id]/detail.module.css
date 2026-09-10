@@ -247,18 +247,98 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .bidItem {
-  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bidItem:first-child {
+  background: #fff8e1;
+  border-color: #ffe082;
+}
+
+.bidLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bidderLink {
+  font-weight: bold;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 9pt;
+}
+
+.bidderLink:hover {
+  color: #D50000;
 }
 
 .bidderName {
-  margin-right: 10px;
+  margin-right: 6px;
+  font-size: 9pt;
+}
+
+.bidderRep {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-size: 7.5pt;
+  font-weight: bold;
+}
+
+.bidMsgBtn {
+  font-size: 7.5pt;
+  padding: 2px 7px;
+  background-color: #ffffff;
+  color: #D50000;
+  border: 1px solid #D50000;
+  border-radius: 3px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+
+.bidMsgBtn:hover {
+  background-color: #ffebee;
+}
+
+.bidMeBadge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 7.5pt;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid #c8e6c9;
+}
+
+.bidRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .bidAmount {
   font-weight: bold;
+  font-size: 9.5pt;
+  color: #222;
 }
 
 .noBids {

@@ -52,7 +52,7 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
     try {
       const { data: bidsData, error: bidsError } = await supabase
         .from('bids')
-        .select('*, bidder:profiles(display_name)')
+        .select('*, bidder:profiles(id, display_name, reputation_score, is_verified)')
         .eq('auction_id', id)
         .order('amount', { ascending: false })
 
@@ -197,7 +197,7 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
           bidder_id: user.id,
           amount
         })
-        .select('*, bidder:profiles(display_name)')
+        .select('*, bidder:profiles(id, display_name, reputation_score, is_verified)')
         .single()
 
       if (insertError) throw insertError
@@ -463,12 +463,52 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
               <p className={styles.noBids}>Chưa có lượt đặt giá. Hãy là người đầu tiên!</p>
             ) : (
               <ul className={styles.bidList}>
-                {bids.map((bid) => (
-                  <li key={bid.id} className={styles.bidItem}>
-                    <span className={styles.bidderName}>{(bid.bidder as any)?.display_name || 'Ẩn danh'}</span>
-                    <span className={styles.bidAmount}>{bid.amount.toLocaleString('vi-VN')} VNĐ</span>
-                  </li>
-                ))}
+                {bids.map((bid) => {
+                  const bidderId = bid.bidder_id || (bid.bidder as any)?.id
+                  const bidderName = (bid.bidder as any)?.display_name || 'Ẩn danh'
+                  const repScore = (bid.bidder as any)?.reputation_score
+                  const isMe = user?.id === bidderId
+
+                  return (
+                    <li key={bid.id} className={styles.bidItem}>
+                      <div className={styles.bidLeft}>
+                        {bidderId ? (
+                          <Link 
+                            href={`/users/${bidderId}`} 
+                            className={styles.bidderLink} 
+                            title="Xem trang cá nhân người này"
+                          >
+                            {bidderName}
+                          </Link>
+                        ) : (
+                          <span className={styles.bidderName}>{bidderName}</span>
+                        )}
+
+                        {repScore !== undefined && repScore !== null && (
+                          <span className={styles.bidderRep} title="Điểm uy tín">
+                            ⭐{repScore}
+                          </span>
+                        )}
+
+                        {isMe ? (
+                          <span className={styles.bidMeBadge}>Bạn</span>
+                        ) : bidderId ? (
+                          <Link 
+                            href={`/messages?to=${bidderId}`} 
+                            className={styles.bidMsgBtn}
+                            title={`Nhắn tin cho ${bidderName}`}
+                          >
+                            💬 Nhắn tin
+                          </Link>
+                        ) : null}
+                      </div>
+
+                      <div className={styles.bidRight}>
+                        <span className={styles.bidAmount}>{bid.amount.toLocaleString('vi-VN')} VNĐ</span>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
