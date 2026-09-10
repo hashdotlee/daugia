@@ -70,6 +70,11 @@ export default async function HomePage() {
                   </div>
                   
                   <div className={styles.requirements}>
+                    {new Date() > new Date(auction.end_time) ? (
+                      <span className={styles.badge} style={{ color: '#D50000', borderColor: '#D50000' }}>Đã Kết Thúc</span>
+                    ) : (
+                      <span className={styles.badge} style={{ color: '#2e7d32', borderColor: '#2e7d32' }}>Đang Diễn Ra</span>
+                    )}
                     {!auction.allow_unverified && (
                       <span className={styles.badge}>Chỉ Đã Xác Minh</span>
                     )}

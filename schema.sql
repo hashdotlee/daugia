@@ -30,7 +30,8 @@ CREATE TABLE bids (
     auction_id UUID REFERENCES auctions(id) NOT NULL,
     bidder_id UUID REFERENCES profiles(id) NOT NULL,
     amount NUMERIC NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    UNIQUE(auction_id, amount)
 );
 
 -- Reputation Votes Table
@@ -95,6 +96,9 @@ CREATE POLICY "Authenticated users can vote." ON reputation_votes FOR INSERT WIT
 CREATE POLICY "Users can view their own messages." ON messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 CREATE POLICY "Users can send messages." ON messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
 
--- Enable Realtime for Messages
+-- Enable Realtime for Tables
 ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE bids;
+ALTER PUBLICATION supabase_realtime ADD TABLE auctions;
+
 

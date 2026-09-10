@@ -1,10 +1,32 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, useCallback, useRef, use } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import styles from './detail.module.css'
+
+function deduplicateBids(rawBids: any[]): any[] {
+  if (!Array.isArray(rawBids)) return []
+  const seenIds = new Set<string>()
+  const seenAmountUser = new Set<string>()
+  const result: any[] = []
+
+  for (const bid of rawBids) {
+    if (!bid || seenIds.has(bid.id)) continue
+    seenIds.add(bid.id)
+
+    // Filter duplicate bid by same bidder for same amount
+    const duplicateKey = `${bid.bidder_id}_${bid.amount}`
+    if (seenAmountUser.has(duplicateKey)) {
+      continue
+    }
+    seenAmountUser.add(duplicateKey)
+    result.push(bid)
+  }
+
+  return result.sort((a, b) => b.amount - a.amount)
+}
 
 export default function AuctionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -16,6 +38,7 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
   const [bidAmount, setBidAmount] = useState('')
   const [bidLoading, setBidLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isSubmittingRef = useRef(false)
   
   // Penalty state
   const [penalties, setPenalties] = useState<any[]>([])
@@ -24,10 +47,45 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
   const supabase = createClient()
   const router = useRouter()
 
+  const fetchBids = useCallback(async () => {
+    try {
+      const { data: bidsData, error: bidsError } = await supabase
+        .from('bids')
+        .select('*, bidder:profiles(display_name)')
+        .eq('auction_id', id)
+        .order('amount', { ascending: false })
+
+      if (!bidsError && bidsData) {
+        setBids(deduplicateBids(bidsData))
+      }
+    } catch {
+      // background polling quiet fail
+    }
+  }, [id, supabase])
+
+  const fetchAuction = useCallback(async () => {
+    try {
+      const { data: auctionData, error: auctionError } = await supabase
+        .from('auctions')
+        .select('*, creator:profiles(display_name)')
+        .eq('id', id)
+        .single()
+
+      if (!auctionError && auctionData) {
+        setAuction(auctionData)
+      }
+    } catch {
+      // background polling quiet fail
+    }
+  }, [id, supabase])
+
   useEffect(() => {
-    const fetchData = async () => {
+    let isMounted = true
+
+    const initData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
+        if (!isMounted) return
         setUser(user)
 
         if (user) {
@@ -36,7 +94,7 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
             .select('*')
             .eq('id', user.id)
             .single()
-          setProfile(profileData)
+          if (isMounted) setProfile(profileData)
         }
 
         // Fetch auction
@@ -47,68 +105,62 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
           .single()
 
         if (auctionError) throw auctionError
-        setAuction(auctionData)
+        if (isMounted) setAuction(auctionData)
 
         // Fetch bids
-        const { data: bidsData, error: bidsError } = await supabase
-          .from('bids')
-          .select('*, bidder:profiles(display_name)')
-          .eq('auction_id', id)
-          .order('amount', { ascending: false })
-
-        if (bidsError) throw bidsError
-        setBids(bidsData || [])
+        await fetchBids()
 
         // Fetch penalties
         const { data: penaltiesData } = await supabase
           .from('penalties')
           .select('*')
           .eq('auction_id', id)
-        setPenalties(penaltiesData || [])
+        if (isMounted) setPenalties(penaltiesData || [])
 
-        // Set up realtime subscription for bids
-        const channelName = `bids_${id}_${Date.now()}`
-        const channel = supabase
-          .channel(channelName)
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${id}` },
-            async (payload) => {
-              // Fetch the bidder profile to display their name
-              const { data: bidderProfile } = await supabase
-                .from('profiles')
-                .select('display_name')
-                .eq('id', payload.new.bidder_id)
-                .single()
-              
-              const newBid = {
-                ...payload.new,
-                bidder: bidderProfile
-              }
-              
-              setBids((currentBids) => {
-                const updatedBids = [newBid, ...currentBids]
-                return updatedBids.sort((a: any, b: any) => b.amount - a.amount)
-              })
-            }
-          )
-          .subscribe()
-
-        return () => {
-          supabase.removeChannel(channel)
-        }
       } catch (err: any) {
-        setError(err.message)
+        if (isMounted) setError(err.message)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
-    fetchData()
-  }, [id, supabase])
+    initData()
+
+    // Realtime subscription for bids
+    const channelName = `bids_${id}_${Date.now()}`
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${id}` },
+        () => {
+          fetchBids()
+        }
+      )
+      .subscribe()
+
+    // Continuous polling every 2.5 seconds to guarantee latest price updates
+    let pollCount = 0
+    const interval = setInterval(() => {
+      fetchBids()
+      pollCount++
+      // Periodically refresh auction status every ~10s
+      if (pollCount % 4 === 0) {
+        fetchAuction()
+      }
+    }, 2500)
+
+    return () => {
+      isMounted = false
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
+  }, [id, supabase, fetchBids, fetchAuction])
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmittingRef.current || bidLoading) return
+    isSubmittingRef.current = true
     setBidLoading(true)
     setError(null)
 
@@ -133,24 +185,35 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
       const amount = parseFloat(bidAmount)
       const currentHighest = bids.length > 0 ? bids[0].amount : auction.start_price
 
-      if (amount <= currentHighest) {
+      if (isNaN(amount) || amount <= currentHighest) {
         throw new Error(`Mức giá phải cao hơn ${currentHighest.toLocaleString('vi-VN')} VNĐ`)
       }
 
-      const { error: insertError } = await supabase
+      const { data: insertedBid, error: insertError } = await supabase
         .from('bids')
         .insert({
           auction_id: auction.id,
           bidder_id: user.id,
           amount
         })
+        .select('*, bidder:profiles(display_name)')
+        .single()
 
       if (insertError) throw insertError
 
       setBidAmount('')
+
+      // Optimistic update with deduplication
+      if (insertedBid) {
+        setBids(prev => deduplicateBids([insertedBid, ...prev]))
+      }
+
+      // Immediately re-fetch latest bids
+      await fetchBids()
     } catch (err: any) {
       setError(err.message)
     } finally {
+      isSubmittingRef.current = false
       setBidLoading(false)
     }
   }
@@ -180,10 +243,42 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
+  // Real-time countdown timer state (ticks every second)
+  const [now, setNow] = useState<number>(() => Date.now())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const getTimeLeft = (endTimeStr: string) => {
+    const diff = new Date(endTimeStr).getTime() - now
+    if (diff <= 0) {
+      return { isEnded: true, text: 'Đã kết thúc', isUrgent: false }
+    }
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+    const minutes = Math.floor((diff / (1000 * 60)) % 60)
+    const seconds = Math.floor((diff / 1000) % 60)
+
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const timeFormatted = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    const text = days > 0 ? `${days} ngày ${timeFormatted}` : timeFormatted
+
+    return {
+      isEnded: false,
+      text,
+      isUrgent: diff < 5 * 60 * 1000 // urgent when under 5 minutes
+    }
+  }
+
   if (loading) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Đang tải cuộc đấu giá...</div>
   if (!auction) return <div className="page-container" style={{ textAlign: 'center', marginTop: '100px' }}>Không tìm thấy cuộc đấu giá.</div>
 
-  const isEnded = new Date() > new Date(auction.end_time) || auction.status !== 'active'
+  const timeLeft = getTimeLeft(auction.end_time)
+  const isEnded = timeLeft.isEnded || auction.status !== 'active'
   const currentHighest = bids.length > 0 ? bids[0].amount : auction.start_price
   const winner = bids.length > 0 ? bids[0].bidder_id : null
   const isCreator = user?.id === auction.creator_id
@@ -242,6 +337,15 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
           <div className={styles.metaInfo}>
             <div>
               <strong>Kết Thúc:</strong> {new Date(auction.end_time).toLocaleString()}
+              {!timeLeft.isEnded ? (
+                <span style={{ marginLeft: '8px', color: timeLeft.isUrgent ? '#D50000' : '#2e7d32', fontWeight: 'bold' }}>
+                  (Còn {timeLeft.text})
+                </span>
+              ) : (
+                <span style={{ marginLeft: '8px', color: '#D50000', fontWeight: 'bold' }}>
+                  (Đã kết thúc)
+                </span>
+              )}
             </div>
             <div>
               <strong>Uy Tín Tối Thiểu:</strong> {auction.min_reputation}
@@ -252,6 +356,16 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
         {/* Right Col: Bidding */}
         <div className={styles.sidebar}>
           <div className={`${styles.biddingPanel} glass-panel`}>
+            {/* Countdown Clock */}
+            <div className={`${styles.timerBox} ${timeLeft.isUrgent ? styles.timerUrgent : ''} ${timeLeft.isEnded ? styles.timerEnded : ''}`}>
+              <span className={styles.timerLabel}>
+                {timeLeft.isEnded ? 'Trạng Thái:' : '⏱️ Thời Gian Còn Lại:'}
+              </span>
+              <span className={styles.timerValue}>
+                {timeLeft.text}
+              </span>
+            </div>
+
             <div className={styles.currentPrice}>
               <span className={styles.priceLabel}>Giá Cao Nhất Hiện Tại</span>
               <span className={styles.priceValue}>{currentHighest.toLocaleString('vi-VN')} VNĐ</span>
