@@ -249,19 +249,24 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .bidItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
+  padding: 6px 10px;
   background: #fdfdfd;
   border: 1px solid #eee;
   border-radius: 4px;
   gap: 8px;
-  flex-wrap: wrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.bidItem:hover {
+  background-color: #f5f8fa;
+  border-color: #dcdcdc;
 }
 
 .bidItem:first-child {
@@ -269,11 +274,15 @@
   border-color: #ffe082;
 }
 
+.bidItem:first-child:hover {
+  background: #fff3cd;
+}
+
 .bidLeft {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .bidderLink {
@@ -282,6 +291,7 @@
   text-decoration: underline;
   cursor: pointer;
   font-size: 9pt;
+  white-space: nowrap;
 }
 
 .bidderLink:hover {
@@ -289,8 +299,9 @@
 }
 
 .bidderName {
-  margin-right: 6px;
   font-size: 9pt;
+  color: #333;
+  margin-right: 4px;
 }
 
 .bidderRep {
@@ -300,6 +311,21 @@
   border-radius: 10px;
   font-size: 7.5pt;
   font-weight: bold;
+  white-space: nowrap;
+}
+
+.bidActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.bidItem:hover .bidActions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .bidMsgBtn {
@@ -312,11 +338,13 @@
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   transition: all 0.15s;
 }
 
 .bidMsgBtn:hover {
-  background-color: #ffebee;
+  background-color: #D50000;
+  color: #ffffff;
 }
 
 .bidMeBadge {
@@ -333,6 +361,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .bidAmount {

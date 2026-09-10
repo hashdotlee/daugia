@@ -490,17 +490,22 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
                           </span>
                         )}
 
-                        {isMe ? (
+                        {isMe && (
                           <span className={styles.bidMeBadge}>Bạn</span>
-                        ) : bidderId ? (
-                          <Link 
-                            href={`/messages?to=${bidderId}`} 
-                            className={styles.bidMsgBtn}
-                            title={`Nhắn tin cho ${bidderName}`}
-                          >
-                            💬 Nhắn tin
-                          </Link>
-                        ) : null}
+                        )}
+
+                        {/* Button appears on hover */}
+                        {!isMe && bidderId && (
+                          <div className={styles.bidActions}>
+                            <Link 
+                              href={`/messages?to=${bidderId}`} 
+                              className={styles.bidMsgBtn}
+                              title={`Nhắn tin cho ${bidderName}`}
+                            >
+                              💬 Nhắn tin
+                            </Link>
+                          </div>
+                        )}
                       </div>
 
                       <div className={styles.bidRight}>
