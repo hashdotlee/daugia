@@ -90,6 +90,19 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
         <div className={styles.meta}>
           Uy tín: {profile.reputation_score} | 
           Trạng thái: {profile.is_verified ? 'Đã xác minh' : 'Chưa xác minh'}
+          {profile.facebook_link && (
+            <>
+              {' | Facebook: '}
+              <a 
+                href={profile.facebook_link.startsWith('http://') || profile.facebook_link.startsWith('https://') ? profile.facebook_link : `https://${profile.facebook_link}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#0066cc', textDecoration: 'underline' }}
+              >
+                {profile.facebook_link}
+              </a>
+            </>
+          )}
         </div>
         
         {currentUser && currentUser.id !== id && (

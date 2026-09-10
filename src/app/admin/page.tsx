@@ -152,6 +152,7 @@ export default function AdminDashboard() {
                 <tr>
                   <th>Tên Hiển Thị</th>
                   <th>SĐT</th>
+                  <th>Facebook</th>
                   <th>Uy Tín</th>
                   <th>Vai Trò</th>
                   <th>Trạng Thái</th>
@@ -161,8 +162,27 @@ export default function AdminDashboard() {
               <tbody>
                 {users.map(u => (
                   <tr key={u.id}>
-                    <td>{u.display_name}</td>
+                    <td>
+                      <Link href={`/users/${u.id}`} style={{ color: 'inherit', textDecoration: 'underline' }}>
+                        {u.display_name || 'Không tên'}
+                      </Link>
+                    </td>
                     <td>{u.phone || 'N/A'}</td>
+                    <td>
+                      {u.facebook_link ? (
+                        <a 
+                          href={u.facebook_link.startsWith('http://') || u.facebook_link.startsWith('https://') ? u.facebook_link : `https://${u.facebook_link}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ color: '#0066cc', textDecoration: 'underline', wordBreak: 'break-all' }}
+                          title={u.facebook_link}
+                        >
+                          {u.facebook_link.length > 35 ? `${u.facebook_link.slice(0, 32)}...` : u.facebook_link}
+                        </a>
+                      ) : (
+                        <span style={{ color: 'gray' }}>Chưa có</span>
+                      )}
+                    </td>
                     <td>{u.reputation_score}</td>
                     <td>{u.role}</td>
                     <td>
