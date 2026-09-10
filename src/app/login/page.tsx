@@ -37,13 +37,30 @@ export default function LoginPage() {
         if (error) throw error
         alert('Đăng ký thành công! Bạn có thể đăng nhập ngay.')
         setIsSignUp(false)
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (error) throw error
-        router.push('/')
+
+        let redirectUrl = '/'
+        if (authData?.user) {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', authData.user.id)
+              .single()
+
+            if (profile?.role === 'admin') {
+              redirectUrl = '/admin'
+            }
+          } catch {
+            // fallback to '/'
+          }
+        }
+
+        router.push(redirectUrl)
         router.refresh()
       }
     } catch (err: any) {

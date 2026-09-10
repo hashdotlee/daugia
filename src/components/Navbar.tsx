@@ -2,51 +2,61 @@
 
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import styles from './Navbar.module.css'
+import NotificationManager from './NotificationManager'
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const supabase = createClient()
   const router = useRouter()
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single()
-        
-        if (profile?.role === 'admin') {
-          setIsAdmin(true)
-        }
-      }
+  const checkUserRole = useCallback(async (currentUser: User | null) => {
+    if (!currentUser) {
+      setIsAdmin(false)
+      return
     }
-    getUser()
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', currentUser.id)
+        .single()
+      
+      setIsAdmin(profile?.role === 'admin')
+    } catch {
+      setIsAdmin(false)
+    }
+  }, [supabase])
+
+  useEffect(() => {
+    // Initial fetch
+    supabase.auth.getUser().then(({ data: { user: initialUser } }) => {
+      setUser(initialUser)
+      checkUserRole(initialUser)
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null)
-        if (!session) setIsAdmin(false)
+      async (_event, session) => {
+        const currentUser = session?.user || null
+        setUser(currentUser)
+        await checkUserRole(currentUser)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase])
+  }, [supabase, checkUserRole])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
     setIsAdmin(false)
     router.push('/login')
+    router.refresh()
   }
 
   return (
@@ -63,7 +73,10 @@ export default function Navbar() {
               </Link>
             )}
             <Link href="/auctions/create" className={styles.navLink}>Tạo Đấu Giá</Link>
-            <Link href="/messages" className={styles.navLink}>Tin Nhắn</Link>
+            <Link href="/messages" className={styles.navLink}>
+              Tin Nhắn
+              {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+            </Link>
             <Link href="/profile" className={styles.navLink}>Hồ Sơ</Link>
             <button 
               onClick={handleSignOut} 
@@ -99,6 +112,11 @@ export default function Navbar() {
           </>
         )}
       </div>
+      <NotificationManager 
+        currentUser={user} 
+        isAdmin={isAdmin} 
+        onUnreadChange={setUnreadCount} 
+      />
     </nav>
   )
 }

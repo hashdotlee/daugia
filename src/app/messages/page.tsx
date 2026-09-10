@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -18,9 +18,57 @@ function MessagesContent() {
   
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const supabase = createClient()
   const router = useRouter()
+
+  const fetchContacts = useCallback(async (userId: string) => {
+    try {
+      const { data: allMessages } = await supabase
+        .from('messages')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+
+      const contactIds = new Set<string>()
+      allMessages?.forEach(m => {
+        if (m.sender_id !== userId) contactIds.add(m.sender_id)
+        if (m.receiver_id && m.receiver_id !== userId) contactIds.add(m.receiver_id)
+      })
+
+      if (activeUserId && !contactIds.has(activeUserId)) {
+        contactIds.add(activeUserId)
+      }
+
+      if (contactIds.size > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', Array.from(contactIds))
+        setContacts(profiles || [])
+      }
+    } catch (err) {
+      console.error('Error fetching contacts:', err)
+    }
+  }, [activeUserId, supabase])
+
+  const fetchMessages = useCallback(async () => {
+    if (!currentUser || !activeUserId || isSupport) return
+    try {
+      let query = supabase
+        .from('messages')
+        .select('*, sender:profiles!messages_sender_id_fkey(display_name)')
+      
+      query = query.or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeUserId}),and(sender_id.eq.${activeUserId},receiver_id.eq.${currentUser.id})`)
+
+      const { data, error } = await query.order('created_at', { ascending: true })
+      if (!error && data) {
+        setMessages(data)
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err)
+    }
+  }, [currentUser, activeUserId, isSupport, supabase])
 
   useEffect(() => {
     const fetchInitial = async () => {
@@ -49,47 +97,15 @@ function MessagesContent() {
         }
       }
 
-      // Fetch contacts (people who we sent messages to or received from)
-      const { data: allMessages } = await supabase
-        .from('messages')
-        .select('sender_id, receiver_id')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-
-      const contactIds = new Set<string>()
-      allMessages?.forEach(m => {
-        if (m.sender_id !== user.id) contactIds.add(m.sender_id)
-        if (m.receiver_id && m.receiver_id !== user.id) contactIds.add(m.receiver_id)
-      })
-
-      if (activeUserId && !contactIds.has(activeUserId)) {
-        contactIds.add(activeUserId)
-      }
-
-      if (contactIds.size > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name')
-          .in('id', Array.from(contactIds))
-        setContacts(profiles || [])
-      }
-
+      await fetchContacts(user.id)
       setLoading(false)
     }
 
     fetchInitial()
-  }, [supabase, router, activeUserId, isSupport])
+  }, [supabase, router, activeUserId, isSupport, fetchContacts])
 
   useEffect(() => {
     if (!currentUser || !activeUserId || isSupport) return
-
-    const fetchMessages = async () => {
-      let query = supabase.from('messages').select('*, sender:profiles!messages_sender_id_fkey(display_name)')
-      
-      query = query.or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeUserId}),and(sender_id.eq.${activeUserId},receiver_id.eq.${currentUser.id})`)
-
-      const { data } = await query.order('created_at', { ascending: true })
-      setMessages(data || [])
-    }
 
     fetchMessages()
 
@@ -99,33 +115,59 @@ function MessagesContent() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
+        () => {
           fetchMessages()
         }
       )
       .subscribe()
 
+    const interval = setInterval(() => {
+      fetchMessages()
+    }, 4000)
+
     return () => {
+      clearInterval(interval)
       supabase.removeChannel(channel)
     }
-  }, [currentUser, activeUserId, isSupport, supabase])
+  }, [currentUser, activeUserId, isSupport, fetchMessages, supabase])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !currentUser || !activeUserId) return
+    const content = newMessage.trim()
+    if (!content || !currentUser || !activeUserId) return
     
     setSending(true)
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           sender_id: currentUser.id,
           receiver_id: activeUserId,
-          content: newMessage
+          content: content
         })
+        .select('*, sender:profiles!messages_sender_id_fkey(display_name)')
+        .single()
 
       if (error) throw error
       setNewMessage('')
+
+      // Optimistic update so message shows immediately
+      if (data) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === data.id)) return prev
+          return [...prev, data]
+        })
+      }
+
+      // Invalidate and fetch latest data
+      await fetchMessages()
+      if (currentUser?.id) {
+        await fetchContacts(currentUser.id)
+      }
     } catch (err: any) {
       alert(err.message)
     } finally {
@@ -171,6 +213,7 @@ function MessagesContent() {
                   </div>
                 )
               })}
+              <div ref={messagesEndRef} />
             </div>
             
             <form onSubmit={handleSend} className={styles.composeForm}>

@@ -94,3 +94,7 @@ CREATE POLICY "Authenticated users can vote." ON reputation_votes FOR INSERT WIT
 -- Messages
 CREATE POLICY "Users can view their own messages." ON messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 CREATE POLICY "Users can send messages." ON messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+-- Enable Realtime for Messages
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+

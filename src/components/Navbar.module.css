@@ -29,3 +29,16 @@
 .navLink:hover {
   text-decoration: underline;
 }
+
+.badge {
+  background-color: #FFEB3B;
+  color: #D50000;
+  font-size: 8pt;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 14px;
+}
