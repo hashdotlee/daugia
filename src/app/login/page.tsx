@@ -37,11 +37,12 @@ export default function LoginPage() {
         if (error) throw error
         alert('Đăng ký thành công! Bạn có thể đăng nhập ngay.')
         setIsSignUp(false)
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
+      } else {
+        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
-        if (error) throw error
+        if (signInError) throw signInError
 
         let redirectUrl = '/'
         if (authData?.user) {
