@@ -43,6 +43,104 @@
   margin-bottom: 10px;
 }
 
+.sellerBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fdfdfd;
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid #D50000;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 10px 0 16px 0;
+}
+
+.sellerInfo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 9.5pt;
+}
+
+.sellerLabel {
+  color: #666;
+}
+
+.sellerName {
+  font-weight: bold;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sellerName:hover {
+  color: #D50000;
+}
+
+.sellerReputation {
+  background: #fff8e1;
+  color: #e65100;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #ffe082;
+  font-size: 8.5pt;
+  font-weight: bold;
+}
+
+.verifiedBadge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #c8e6c9;
+  font-size: 8.5pt;
+  font-weight: bold;
+}
+
+.sellerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sellerBtnPrimary {
+  background-color: #D50000;
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 8.5pt;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.sellerBtnPrimary:hover {
+  background-color: #b71c1c;
+}
+
+.sellerBtnSecondary {
+  background-color: #ffffff;
+  color: #333333;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 8.5pt;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.sellerBtnSecondary:hover {
+  background-color: #f5f5f5;
+  border-color: #999;
+}
+
 .description {
   margin-bottom: 15px;
 }

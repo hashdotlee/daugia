@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef, use } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { User } from '@supabase/supabase-js'
 import styles from './detail.module.css'
 
@@ -67,7 +68,7 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
     try {
       const { data: auctionData, error: auctionError } = await supabase
         .from('auctions')
-        .select('*, creator:profiles(display_name)')
+        .select('*, creator:profiles(id, display_name, reputation_score, is_verified, facebook_link)')
         .eq('id', id)
         .single()
 
@@ -100,7 +101,7 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
         // Fetch auction
         const { data: auctionData, error: auctionError } = await supabase
           .from('auctions')
-          .select('*, creator:profiles(display_name)')
+          .select('*, creator:profiles(id, display_name, reputation_score, is_verified, facebook_link)')
           .eq('id', id)
           .single()
 
@@ -304,7 +305,31 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
           
-          <p className={styles.creator}>Tổ chức bởi {(auction.creator as any)?.display_name}</p>
+          <div className={styles.sellerBox}>
+            <div className={styles.sellerInfo}>
+              <span className={styles.sellerLabel}>Người bán:</span>
+              <Link href={`/users/${auction.creator_id}`} className={styles.sellerName} title="Xem trang cá nhân người bán">
+                {(auction.creator as any)?.display_name || 'Ẩn danh'}
+              </Link>
+              <span className={styles.sellerReputation}>
+                ⭐ Uy tín: <strong>{(auction.creator as any)?.reputation_score ?? 0}</strong>
+              </span>
+              {(auction.creator as any)?.is_verified && (
+                <span className={styles.verifiedBadge}>✓ Đã xác minh</span>
+              )}
+            </div>
+
+            <div className={styles.sellerActions}>
+              <Link href={`/users/${auction.creator_id}`} className={styles.sellerBtnSecondary}>
+                Xem Thông Tin
+              </Link>
+              {user?.id !== auction.creator_id && (
+                <Link href={`/messages?to=${auction.creator_id}`} className={styles.sellerBtnPrimary}>
+                  💬 Nhắn Tin
+                </Link>
+              )}
+            </div>
+          </div>
           
           {(() => {
             if (!auction.image_url) return null;
