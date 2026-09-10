@@ -13,6 +13,17 @@ interface ToastItem {
   content: string
 }
 
+interface MessageRecord {
+  id: string
+  sender_id: string
+  receiver_id?: string | null
+  content: string
+  created_at?: string
+  sender?: {
+    display_name?: string
+  }
+}
+
 interface NotificationManagerProps {
   currentUser: User | null
   isAdmin: boolean
@@ -22,7 +33,7 @@ interface NotificationManagerProps {
 function playNotificationSound() {
   if (typeof window === 'undefined') return
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     if (!AudioCtx) return
     const ctx = new AudioCtx()
     const osc = ctx.createOscillator()
@@ -78,7 +89,7 @@ export default function NotificationManager({
     router.push(`/messages?to=${senderId}`)
   }, [dismissToast, router])
 
-  const notifyMessage = useCallback(async (msg: any) => {
+  const notifyMessage = useCallback(async (msg: MessageRecord) => {
     if (!msg || !currentUser) return
     if (msg.sender_id === currentUser.id) return
     if (seenMessageIds.current.has(msg.id)) return
@@ -117,7 +128,9 @@ export default function NotificationManager({
             body: msg.content,
             icon: '/favicon.ico'
           })
-        } catch {}
+        } catch {
+          // ignore notification error
+        }
       }
 
       // Show toast
@@ -139,7 +152,6 @@ export default function NotificationManager({
 
   useEffect(() => {
     if (!currentUser) {
-      setToasts([])
       return
     }
 
@@ -156,7 +168,7 @@ export default function NotificationManager({
           table: 'messages'
         },
         async (payload) => {
-          const newMsg = payload.new as any
+          const newMsg = payload.new as MessageRecord
           if (!newMsg) return
           if (newMsg.receiver_id === currentUser.id || (isAdmin && !newMsg.receiver_id)) {
             await notifyMessage(newMsg)
@@ -184,10 +196,10 @@ export default function NotificationManager({
         if (!error && data && data.length > 0) {
           lastCheckedTimeRef.current = data[data.length - 1].created_at
           for (const msg of data) {
-            await notifyMessage(msg)
+            await notifyMessage(msg as MessageRecord)
           }
         }
-      } catch (err) {
+      } catch {
         // ignore polling error
       }
     }, 5000)
@@ -198,7 +210,7 @@ export default function NotificationManager({
     }
   }, [currentUser, isAdmin, supabase, notifyMessage])
 
-  if (toasts.length === 0) return null
+  if (!currentUser || toasts.length === 0) return null
 
   return (
     <div className={styles.toastContainer}>
