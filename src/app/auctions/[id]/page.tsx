@@ -472,40 +472,40 @@ export default function AuctionDetailPage({ params }: { params: Promise<{ id: st
                   return (
                     <li key={bid.id} className={styles.bidItem}>
                       <div className={styles.bidLeft}>
-                        {bidderId ? (
-                          <Link 
-                            href={`/users/${bidderId}`} 
-                            className={styles.bidderLink} 
-                            title="Xem trang cá nhân người này"
-                          >
-                            {bidderName}
-                          </Link>
-                        ) : (
-                          <span className={styles.bidderName}>{bidderName}</span>
-                        )}
-
-                        {repScore !== undefined && repScore !== null && (
-                          <span className={styles.bidderRep} title="Điểm uy tín">
-                            ⭐{repScore}
-                          </span>
-                        )}
-
-                        {isMe && (
-                          <span className={styles.bidMeBadge}>Bạn</span>
-                        )}
-
-                        {/* Button appears on hover */}
-                        {!isMe && bidderId && (
-                          <div className={styles.bidActions}>
+                        <div className={styles.bidderWrapper}>
+                          {bidderId ? (
                             <Link 
-                              href={`/messages?to=${bidderId}`} 
-                              className={styles.bidMsgBtn}
-                              title={`Nhắn tin cho ${bidderName}`}
+                              href={`/users/${bidderId}`} 
+                              className={styles.bidderLink} 
+                              title="Bấm để xem trang cá nhân"
                             >
-                              💬 Nhắn tin
+                              {bidderName}
                             </Link>
+                          ) : (
+                            <span className={styles.bidderName}>{bidderName}</span>
+                          )}
+
+                          {/* Chỉ hiển thị điểm uy tín và nút nhắn tin khi hover vào tên */}
+                          <div className={styles.bidderHoverInfo}>
+                            {repScore !== undefined && repScore !== null && (
+                              <span className={styles.bidderRep} title="Điểm uy tín">
+                                ⭐ Uy tín: {repScore}
+                              </span>
+                            )}
+                            {isMe && (
+                              <span className={styles.bidMeBadge}>Bạn</span>
+                            )}
+                            {!isMe && bidderId && (
+                              <Link 
+                                href={`/messages?to=${bidderId}`} 
+                                className={styles.bidMsgBtn}
+                                title={`Nhắn tin cho ${bidderName}`}
+                              >
+                                💬 Nhắn tin
+                              </Link>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
 
                       <div className={styles.bidRight}>
